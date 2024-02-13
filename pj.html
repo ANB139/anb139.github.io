@@ -1,26 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-cmn-Hans">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>评语复制</title>
+  <title>评语下蛋器</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: "Microsoft Yahei","Helvetica Neue",Helvetica,Arial,sans-serif;
       margin: 0;
       padding: 0;
     }
-
+    
     .container {
       max-width: 800px;
       margin: 0 auto;
       padding: 20px;
     }
-
+    
     input[type="file"] {
       display: none;
     }
-
+    
     .upload-button {
       background-color: #3498db;
       border: none;
@@ -34,16 +34,21 @@
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
-
+    
     .upload-button:hover {
       background-color: #2980b9;
     }
-
+    
     .display {
-      font-size: 24px;
+      font-size: 18px;
       margin-bottom: 20px;
+	  font-family: "Microsoft Yahei","Helvetica Neue",Helvetica,Arial,sans-serif;
+	  border: 1px solid black;
+	  outline: none;
+	  width: 100%;
     }
 
+    
     .copy-button {
       background-color: #e74c3c;
       border: none;
@@ -57,27 +62,32 @@
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
-
+    
     .copy-button:hover {
       background-color: #c0392b;
     }
-
+    
     .end-message {
-      font-size: 18px;
       font-style: italic;
-      margin-top: 20px;
+      margin-bottom: 10px;
     }
-
-    .line-input {
-      width: 100px;
-      margin-right: 20px;
-      padding: 5px;
-      border: 1px solid #ccc;
-      padding: 10px 20px;
+    
+    .line-info {
+      font-style: italic;
+      margin-bottom: 10px;
     }
-
-    .go-button {
-      background-color: #e67e22;
+    
+    .jump-input {
+	width: 100px;
+    margin-right: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    outline: none;
+    border: none;
+    }
+    
+    .jump-button {
+      background-color: #34754e;
       border: none;
       color: white;
       padding: 10px 20px;
@@ -85,35 +95,48 @@
       text-decoration: none;
       display: inline-block;
       font-size: 16px;
+      margin-right: 20px;
       cursor: pointer;
       transition: background-color 0.3s ease;
     }
-
-    .go-button:hover {
-      background-color: #d35400;
+    
+    .jump-button:hover {
+      background-color: #2980b9;
     }
   </style>
-
+  
   <script>
     function processTextFile(event) {
       const file = event.target.files[0];
       const reader = new FileReader();
       const displayElement = document.getElementById('display');
       const copyButtonElement = document.getElementById('copyButton');
+      const lastCopiedElement = document.getElementById('lastCopied');
       const endMessageElement = document.getElementById('endMessage');
-      const lineInputElement = document.getElementById('lineInput');
-      const goButtonElement = document.getElementById('goButton');
-      const lineNumberElement = document.getElementById('lineNumber');
-
+      const lineInfoElement = document.getElementById('lineInfo');
+      const jumpInputElement = document.getElementById('jumpInput');
+      const jumpButtonElement = document.getElementById('jumpButton');
+      
       let lines = [];
       let currentLine = 0;
-
+      
       reader.onload = function(e) {
         const text = e.target.result;
         lines = text.split('\n');
-
-        displayElement.innerText = lines[currentLine];
-
+        
+        if (lines.length > 0 && lines[0] !== '') {
+          copyButtonElement.disabled = false;
+          jumpButtonElement.disabled = false;
+        } else {
+          copyButtonElement.disabled = true;
+          jumpButtonElement.disabled = true;
+        }
+        
+        displayElement.value = lines[currentLine];
+        lineInfoElement.innerText = '当前行数：' + (currentLine + 1) + ' / ' + lines.length;
+        
+        let lastCopiedLine = '';
+        
         copyButtonElement.addEventListener('click', function() {
           const tempInput = document.createElement('input');
           tempInput.value = lines[currentLine];
@@ -121,45 +144,62 @@
           tempInput.select();
           document.execCommand('copy');
           document.body.removeChild(tempInput);
+          
+          lastCopiedLine = lines[currentLine];
+          lastCopiedElement.innerText = '刚复制的是：' + lastCopiedLine;
+          
           currentLine++;
           if (currentLine < lines.length) {
-            displayElement.innerText = lines[currentLine];
+            displayElement.value = lines[currentLine];
+            lineInfoElement.innerText = '当前行数：' + (currentLine + 1) + ' / ' + lines.length;
           } else {
-            displayElement.innerText = '';
+            displayElement.value = '';
             endMessageElement.style.display = 'block';
             copyButtonElement.style.display = 'none';
-            lineInputElement.style.display = 'none';
-            goButtonElement.style.display = 'none';
+            lineInfoElement.style.display = 'none';
+            jumpInputElement.disabled = true;
+            jumpButtonElement.disabled = true;
           }
-          lineNumberElement.innerText = '当前行数：' + (currentLine + 1) + ' / ' + lines.length;
         });
-
-        goButtonElement.addEventListener('click', function() {
-          const lineNumber = parseInt(lineInputElement.value);
-          if (lineNumber > 0 && lineNumber <= lines.length) {
-            currentLine = lineNumber - 1;
-            displayElement.innerText = lines[currentLine];
-            lineInputElement.value = '';
+        
+        jumpButtonElement.addEventListener('click', function() {
+          const jumpLine = parseInt(jumpInputElement.value);
+          
+          if (!isNaN(jumpLine) && jumpLine >= 1 && jumpLine <= lines.length) {
+            currentLine = jumpLine - 1;
+            displayElement.value = lines[currentLine];
+            lineInfoElement.innerText = '当前行数：' + (currentLine + 1) + ' / ' + lines.length;
+            jumpInputElement.value = '';
+          } else {
+            alert('无效的行数！');
           }
-          lineNumberElement.innerText = '当前行数：' + (currentLine + 1) + ' / ' + lines.length;
         });
       };
-
+      
+      reader.onerror = function(e) {
+        alert('读取文件失败，请重试！');
+      };
+      
       reader.readAsText(file);
     }
   </script>
 </head>
+
 <body>
   <div class="container">
     <label for="fileInput" class="upload-button">上传一个文件</label>
-    <button class="copy-button" id="copyButton">复制并跳到下一个</button>
-    <div class="end-message" id="endMessage" style="display: none;">指定行</div>
-    <input type="number" class="line-input" id="lineInput" placeholder="行数">
-    <button class="go-button" id="goButton">跳转</button>
+    <button class="copy-button" id="copyButton" disabled>复制并跳到下一个</button>
+	<button class="jump-button" id="jumpButton" disabled>跳转</button>
+	<input type="text" id="jumpInput" class="jump-input" placeholder="跳转到行数">
+    <div class="end-message" id="endMessage" style="display: none;">已达到文件末尾</div>
+    <div class="line-info" id="lineInfo"></div>
+    <div>
+      
+      
+    </div>
     <input type="file" accept=".txt" id="fileInput" onchange="processTextFile(event)">
-    <div class="display" id="display"></div>
-    <div id="lineNumber" style="font-size: 18px; margin-bottom: 20px;"></div>
-    <br>
+    <textarea class="display" id="display" rows="10" cols="50"></textarea>
+    <div class="last-copied" id="lastCopied"></div>
   </div>
 </body>
 </html>
