@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>提取工具</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+    }
+
+    textarea {
+      border: 2px solid #3498db;
+      border-radius: 5px;
+      padding: 10px;
+      background-color: #fff;
+      color: #333;
+      resize: none;
+    }
+
+    input[type="text"] {
+      border: 2px solid #e74c3c;
+      border-radius: 5px;
+      padding: 10px;
+      background-color: #fff;
+      color: #333;
+    }
+
+    button {
+      background-color: #2ecc71;
+      border: none;
+      border-radius: 5px;
+      padding: 10px 20px;
+      color: #fff;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #27ae60;
+    }
+
+    #count-box {
+      font-size: 16px;
+      color: #7f8c8d;
+    }
+
+    @media (max-width: 600px) {
+      textarea,
+      input[type="text"],
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+  <script>
+    function extract(provider) {
+      var input = document.getElementById("input-box").value,
+        lines = input.split("\n"),
+        regex = /\d{12,19}/g,
+        result = "",
+        count = 0;
+
+      lines.forEach(function (line) {
+        line = line.replace(/\s/g, "");
+        var matches = line.match(regex);
+        if (matches) {
+          matches.forEach(function (match) {
+            result += match + (match.length === 19? provider : provider + "（位数不够）") + "\n";
+            count++;
+          });
+        }
+      });
+
+      updateOutput(result, count);
+    }
+
+    function extractLinesWithNumbers() {
+      var input = document.getElementById("input-box").value,
+        lines = input.split("\n"),
+        regex = /\d{12,}/,
+        result = "",
+        count = 0;
+
+      lines.forEach(function (line) {
+        if (regex.test(line)) {
+          result += line.replace(/\s/g, "") + "\n";
+          count++;
+        }
+      });
+
+      updateOutput(result, count);
+    }
+
+    function updateOutput(result, count) {
+      if (count > 0) {
+        document.getElementById("output-box").value = result;
+        document.getElementById("count-box").innerHTML = "提取数量：" + count;
+      } else {
+        document.getElementById("output-box").value = "没有找到匹配的数字";
+        document.getElementById("count-box").innerHTML = "";
+      }
+
+      copyToClipboard();
+      document.getElementById("input-box").value = "";
+    }
+
+    function copyToClipboard() {
+      var copyText = document.getElementById("output-box");
+      copyText.select();
+      copyText.setSelectionRange(0, 99999);
+      document.execCommand("copy");
+    }
+
+    function processText() {
+      const input = document.getElementById("input-box"),
+        output = document.getElementById("output-box"),
+        text = input.value.replace(/(.*?)(?=:)/gm, '').replace(/\s+/g,'').replace(/:/g, '\n').trim(),
+        lines = text.split('\n').filter(line => line);
+
+      output.value = lines.join('\n');
+    }
+
+    function updateButtonText(inputElement, buttonId) {
+      var button = document.getElementById(buttonId);
+      button.innerHTML = inputElement.value;
+    }
+  </script>
+</head>
+
+<body>
+  <textarea id="input-box" style="width: 95%;height: 250px;" rows="20" placeholder="请输入要添加的内容"></textarea>
+  <br><br>
+
+  <button id="button1" onclick="extract(document.getElementById('provider-box1').value)">1 号</button>
+  <span>&nbsp;&nbsp;</span>
+
+  <button id="button2" onclick="extract(document.getElementById('provider-box2').value)">2 号</button>
+  <span>&nbsp;&nbsp;</span>
+
+  <button id="button3" onclick="extract(document.getElementById('provider-box3').value)">3 号</button>
+  <span>&nbsp;&nbsp;</span>
+
+  <button id="button4" onclick="extract(document.getElementById('provider-box4').value)">4 号</button>
+  <span>&nbsp;&nbsp;</span>
+
+  <button onclick="processText()">清回车</button>  <span>&nbsp;&nbsp;</span>
+  <button onclick="extractLinesWithNumbers()">取整行</button>
+  <br><br>
+  <textarea id="output-box" style="width: 95%;height: 250px;" rows="20" placeholder="此处输出内容"></textarea>
+  <div id="count-box"></div>
+  <br><br>
+  <input type="text" id="provider-box1" value="自定义 1" oninput="updateButtonText(this, 'button1')" style="width: 90px;"><span>&nbsp;&nbsp;</span>
+  <input type="text" id="provider-box2" value="自定义 2" oninput="updateButtonText(this, 'button2')" style="width: 90px;"><span>&nbsp;&nbsp;</span>
+  <input type="text" id="provider-box3" value="自定义 3" oninput="updateButtonText(this, 'button3')" style="width: 90px;"><span>&nbsp;&nbsp;</span>
+  <input type="text" id="provider-box4" value="自定义 4" oninput="updateButtonText(this, 'button4')" style="width: 90px;"><span>&nbsp;&nbsp;</span>
+
+</body>
+
+</html>
+<script>
+  var _hmt = _hmt || [];
+  (function () {
+    var hm = document.createElement("script");
+    hm.src = "https://hm.baidu.com/hm.js?39ce37cc42892c4c3974eac1a9c6286a";
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(hm, s);
+  })();
+</script>
