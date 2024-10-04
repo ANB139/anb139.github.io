@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<!-- 文档类型声明，告诉浏览器这是一个HTML5文档 -->
+<html lang="zh-CN">
+  <head>
+    <!-- 网页头部信息 -->
+    <meta charset="UTF-8">
+    <!-- 设置字符编码为UTF-8，支持中文等多语言 -->
+    <title>提取工具</title>
+    <!-- 网页标题 -->
+    <style>
+      /* 内联CSS样式 */
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f0f4f8;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        /* 页面主体使用Flex布局，居中显示内容 */
+      }
+
+      .container {
+        width: 100%;
+        max-width: 800px;
+        background: white;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        /* 容器类，设定最大宽度、背景色、阴影效果以及溢出隐藏 */
+      }
+
+      .header {
+        background: #007bff;
+        color: white;
+        padding: 15px 20px;
+        text-align: center;
+        font-size: 20px;
+        font-weight: bold;
+        /* 头部样式，设置背景色、文字颜色、填充、对齐方式和字体大小 */
+      }
+
+      .button-group, .provider-inputs {
+        display: flex; /* 使用弹性盒子布局 */
+        flex-wrap: wrap; /* 允许项目换行 */
+        gap: 10px; /* 项目之间的间距 */
+        padding: 20px; /* 内边距 */
+        background: #f9f9f9; /* 背景色 */
+        border: 1px solid #ddd; /* 边框 */
+      }
+
+      .custom-button, .fixed-button {
+        background: #007bff; /* 按钮背景色 */
+        border: none; /* 无边框 */
+        padding: 10px; /* 填充 */
+        color: white; /* 文字颜色 */
+        cursor: pointer; /* 鼠标指针样式 */
+        transition: background 0.3s ease; /* 背景色过渡效果 */
+        font-size: 16px; /* 字体大小 */
+      }
+
+      .custom-button {
+        display: none; /* 默认隐藏自定义按钮 */
+      }
+
+      button:hover {
+        background: #0056b3; /* 当鼠标悬停在按钮上时改变背景色 */
+      }
+
+      .output-container {
+        padding: 20px; /* 输出容器内边距 */
+      }
+
+      textarea {
+        width: 100%; /* 占据整个宽度 */
+        height: 200px; /* 高度 */
+        padding: 10px; /* 填充 */
+        font-size: 14px; /* 字体大小 */
+        outline: none; /* 无轮廓线 */
+        border: 0; /* 无边框 */
+        resize: none; /* 禁止调整大小 */
+      }
+
+      #count-box {
+        font-size: 14px; /* 计数框字体大小 */
+        color: #555; /* 文字颜色 */
+        margin-top: 10px; /* 顶部外边距 */
+      }
+
+      .provider-inputs input[type="text"] {
+        flex: 1 1 0; /* 弹性增长、收缩和基础尺寸 */
+        min-width: 0; /* 最小宽度 */
+        max-width: 50%; /* 最大宽度 */
+        padding: 10px; /* 填充 */
+        font-size: 14px; /* 字体大小 */
+        outline: none; /* 无轮廓线 */
+        box-sizing: border-box; /* 盒模型 */
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">提取工具</div>
+      <div class="button-group" id="button-group">
+        <!-- 自定义按钮，点击时读取剪贴板并提取数据 -->
+        <button class="custom-button" id="button1" onclick="readClipboardAndExtract('provider-box1')">1 号</button>
+        <button class="custom-button" id="button2" onclick="readClipboardAndExtract('provider-box2')">2 号</button>
+        <button class="custom-button" id="button3" onclick="readClipboardAndExtract('provider-box3')">3 号</button>
+        <button class="custom-button" id="button4" onclick="readClipboardAndExtract('provider-box4')">4 号</button>
+        <!-- 固定功能按钮 -->
+        <button class="fixed-button" onclick="processText()">清回车</button>
+        <button class="fixed-button" onclick="readClipboardAndExtractLinesWithNumbers()">取整行</button>
+      </div>
+      <div class="output-container">
+        <textarea id="output-box" placeholder="此处输出内容"></textarea>
+        <div id="count-box"></div>
+      </div>
+      <div class="provider-inputs">
+        <!-- 提供者输入框，用于输入提供商名称 -->
+        <input type="text" id="provider-box1" value="" oninput="updateButtonText(this, 'button1'); toggleButtonVisibility('button1', this)">
+        <input type="text" id="provider-box2" value="" oninput="updateButtonText(this, 'button2'); toggleButtonVisibility('button2', this)">
+        <input type="text" id="provider-box3" value="" oninput="updateButtonText(this, 'button3'); toggleButtonVisibility('button3', this)">
+        <input type="text" id="provider-box4" value="" oninput="updateButtonText(this, 'button4'); toggleButtonVisibility('button4', this)">
+      </div>
+    </div>
+
+    <script>
+      // JavaScript函数：提取特定格式的数字
+      function extract(provider) {
+        var input = document.getElementById("hidden-input").value,
+            lines = input.split("\n"), // 将输入按行分割
+            regex = /\d{12,19}/g, // 匹配12到19位的数字
+            result = "",
+            count = 0;
+
+        lines.forEach(function (line) {
+          line = line.replace(/\s/g, ""); // 移除空格
+          var matches = line.match(regex); // 查找匹配项
+          if (matches) {
+            matches.forEach(function (match) {
+              result += match + (match.length === 19 ? provider : provider + "（位数不够）") + "\n";
+              count++;
+            });
+          }
+        });
+
+        updateOutput(result, count); // 更新输出和计数
+      }
+
+      // JavaScript函数：提取包含数字的整行
+      function extractLinesWithNumbers() {
+        var input = document.getElementById("hidden-input").value,
+            lines = input.split("\n"),
+            regex = /\d{12,}/,
+            result = "",
+            count = 0;
+
+        lines.forEach(function (line) {
+          if (regex.test(line)) {
+            result += line.replace(/\s/g, "") + "\n";
+            count++;
+          }
+        });
+
+        updateOutput(result, count);
+      }
+
+      // JavaScript函数：更新输出结果和计数
+      function updateOutput(result, count) {
+        if (count > 0) {
+          document.getElementById("output-box").value = result;
+          document.getElementById("count-box").innerHTML = "提取数量：" + count;
+        } else {
+          document.getElementById("output-box").value = "没有找到匹配的数字";
+          document.getElementById("count-box").innerHTML = "";
+        }
+
+        copyToClipboard(); // 将结果复制到剪贴板
+      }
+
+      // JavaScript函数：将输出复制到剪贴板
+      function copyToClipboard() {
+        var copyText = document.getElementById("output-box");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        document.execCommand("copy");
+      }
+
+      // JavaScript函数：清理文本中的回车符
+      function processText() {
+        const input = document.getElementById("hidden-input"),
+              output = document.getElementById("output-box"),
+              text = input.value.replace(/(.*?)(?=:)/gm, '').replace(/\s+/g, '').replace(/:/g, '\n').trim(),
+              lines = text.split('\n').filter(line => line);
+
+        output.value = lines.join('\n');
+      }
+
+      // JavaScript函数：更新按钮上的文本
+      function updateButtonText(inputElement, buttonId) {
+        var button = document.getElementById(buttonId);
+        button.innerHTML = inputElement.value;
+      }
+
+      // JavaScript函数：读取剪贴板并提取数据
+      function readClipboardAndExtract(providerBoxId) {
+        navigator.clipboard.readText().then(text => {
+          document.getElementById("hidden-input").value = text;
+          extract(document.getElementById(providerBoxId).value);
+        }).catch(err => {
+          console.error('无法读取剪贴板的内容: ', err);
+        });
+      }
+
+      // JavaScript函数：读取剪贴板并提取整行
+      function readClipboardAndExtractLinesWithNumbers() {
+        navigator.clipboard.readText().then(text => {
+          document.getElementById("hidden-input").value = text;
+          extractLinesWithNumbers();
+        }).catch(err => {
+          console.error('无法读取剪贴板的内容: ', err);
+        });
+      }
+
+      // JavaScript函数：控制按钮可见性
+      function toggleButtonVisibility(buttonId, inputElement) {
+        var button = document.getElementById(buttonId);
+        if (inputElement.value.trim() !== '') {
+          button.style.display = 'block';
+        } else {
+          button.style.display = 'none';
+        }
+      }
+
+      // 添加隐藏的输入框以便现有函数继续工作
+      document.body.insertAdjacentHTML('beforeend', '<textarea id="hidden-input" style="display:none;"></textarea>');
+
+      // 初始化按钮可见性
+      document.querySelectorAll('.provider-inputs input[type="text"]').forEach(input => {
+        toggleButtonVisibility(`button${input.id.split('-')[1]}`, input);
+      });
+    </script>
+
+    <!-- 百度统计代码 -->
+    <script>
+      var _hmt = _hmt || [];
+      (function () {
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?39ce37cc42892c4c3974eac1a9c6286a";
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+      })();
+    </script>
+  </body>
+  <!-- 页面底部署名 -->
+  <footer style="text-align: center; margin-top: 20px;">
+    此页面由通义千问制作
+  </footer>
+</html>
