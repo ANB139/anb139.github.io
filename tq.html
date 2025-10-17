@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAB5JREFUOE9jdE5895+BAsA4agDDaBgwjIYBw7AIAwBOGCkhF4lgSAAAAABJRU5ErkJggg==" type="image/x-icon">
+    <title>数字提取工具</title>
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --success-color: #4cc9f0;
+            --danger-color: #f72585;
+            --warning-color: #f8961e;
+            --info-color: #4895ef;
+            --light-bg: #f8f9fa;
+            --dark-bg: #212529;
+            --card-bg: #ffffff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --border-color: #e9ecef;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --border-radius: 12px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: linear-gradient(120deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            border-radius: var(--border-radius);
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .page {
+            display: none;
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: var(--transition);
+        }
+
+        .active-page {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .input-section {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+        }
+
+        textarea {
+            width: 100%;
+            height: 250px;
+            padding: 15px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            resize: vertical;
+            transition: var(--transition);
+            font-family: 'Courier New', monospace;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        input[type="number"] {
+            padding: 12px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            width: 140px;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        input[type="text"] {
+            padding: 12px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            width: 200px;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        button {
+            padding: 12px 25px;
+            background: linear-gradient(120deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(67, 97, 238, 0.3);
+        }
+
+        .back-btn {
+            background: linear-gradient(120deg, #6c757d, #495057);
+        }
+
+        .back-btn:hover {
+            box-shadow: 0 6px 12px rgba(108, 117, 125, 0.3);
+        }
+
+        .clear-btn {
+            background: linear-gradient(120deg, #ff6b6b, #ff8e53);
+        }
+
+        .clear-btn:hover {
+            box-shadow: 0 6px 12px rgba(255, 107, 107, 0.3);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        th {
+            background: linear-gradient(120deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        tr:hover {
+            background-color: #e9ecef;
+            transition: var(--transition);
+        }
+
+        .stats {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e7f1ff;
+            border-radius: var(--border-radius);
+            color: var(--primary-color);
+            font-weight: 500;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .history-section {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #fff9db;
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--warning-color);
+        }
+
+        .history-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--warning-color);
+            margin-bottom: 10px;
+        }
+
+        .history-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .history-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #ffeaa7;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-valid {
+            color: #2e7d32;
+            font-weight: 600;
+        }
+
+        .status-invalid-length {
+            color: #f57c00;
+            font-weight: 600;
+        }
+
+        .status-duplicate {
+            color: #c62828;
+            font-weight: 600;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            .page {
+                padding: 20px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            input[type="number"] {
+                width: 100%;
+            }
+            
+            input[type="text"] {
+                width: 100%;
+            }
+            
+            button {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            table {
+                font-size: 0.9rem;
+            }
+            
+            th, td {
+                padding: 8px 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            header {
+                padding: 15px 0;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .page {
+                padding: 15px;
+            }
+            
+            textarea {
+                height: 200px;
+            }
+            
+            th, td {
+                padding: 6px 8px;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* 卡片悬停效果 */
+        .page:hover {
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        /* 按钮图标样式 */
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>数字提取工具</h1>
+            <p>由AI生成的单网页</p>
+        </header>
+        
+        <div id="inputPage" class="page active-page">
+            <h2>📋 数据输入</h2>
+            <div class="input-section">
+                <label for="inputData">请输入包含数字的原始数据：</label>
+                <textarea id="inputData" placeholder="粘贴您的数据..."></textarea>
+            </div>
+            
+            <div class="controls">
+                <input type="number" id="digitCount" placeholder="指定长度" value="19">
+                <button onclick="processData()">
+                    <span class="btn-icon">🔍 提取数字</span>
+                </button>
+                <button class="clear-btn" onclick="clearAll()">
+                    <span class="btn-icon">🗑️ 清空所有数据</span>
+                </button>
+                <!-- 添加查看结果按钮 -->
+                <button onclick="showResultPage()" style="background: linear-gradient(120deg, var(--success-color), var(--info-color));">
+                    <span class="btn-icon">📊 查看当前结果</span>
+                </button>
+            </div>
+            
+            <!-- 历史记录区域 -->
+            <div class="history-section">
+                <div class="history-title">📊 历史处理记录</div>
+                <ul id="historyList" class="history-list">
+                    <li id="historyPlaceholder" class="history-item">暂无历史记录</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div id="resultPage" class="page">
+            <h2>📊 最终提取结果</h2>
+            <div id="stats" class="stats"></div>
+            <div class="controls">
+                <button class="back-btn" onclick="showPage('inputPage')">
+                    <span class="btn-icon">← 返回输入</span>
+                </button>
+                <input type="text" id="fileName" placeholder="自定义文件名" value="">
+                <button onclick="downloadXlsx()">
+                    <span class="btn-icon">📥 下载XLSX</span>
+                </button>
+            </div>
+            
+            <div class="result-section">
+                <table id="resultTable">
+                    <thead>
+                        <tr>
+                            <th>📋 A列 - 原始数据（≥5位）</th>
+                            <th>✅ B列 - 提取数据</th>
+                            <th>💡 C列 - 提示</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <script>
+            // 存储所有处理过的数据
+            let allExtractedNumbers = new Set();
+            // 存储历史记录
+            let historyRecords = [];
+            
+            // 显示指定页面
+            function showPage(pageId) {
+                // 隐藏所有页面
+                const pages = document.querySelectorAll('.page');
+                pages.forEach(page => {
+                    page.classList.remove('active-page');
+                });
+                
+                // 显示指定页面
+                document.getElementById(pageId).classList.add('active-page');
+            }
+            
+            // 处理数据并追加到总结果
+            function processData() {
+                try {
+                    // 获取输入数据和指定位数
+                    const inputData = document.getElementById('inputData').value;
+                    const digitCount = parseInt(document.getElementById('digitCount').value) || 19;
+                    
+                    if (!inputData.trim()) {
+                        alert('请输入数据后再处理！');
+                        return;
+                    }
+                    
+                    // 使用正则表达式提取所有数字序列
+                    const numberRegex = /\d+/g;
+                    const matches = inputData.match(numberRegex) || [];
+                    
+                    // 过滤掉少于5位的数字
+                    const validNumbers = matches.filter(num => num.length >= 5);
+                    
+                    // 统计每个数字出现的次数
+                    const countMap = {};
+                    validNumbers.forEach(num => {
+                        countMap[num] = (countMap[num] || 0) + 1;
+                    });
+                    
+                    // 生成结果行
+                    const rows = [];
+                    const newExtracted = [];
+                    
+                    validNumbers.forEach(num => {
+                        let status = '';
+                        let statusClass = '';
+                        
+                        if (num.length !== digitCount) {
+                            status = `不符合指定的${digitCount}位数要求`;
+                            statusClass = 'status-invalid-length';
+                        } else if (countMap[num] > 1) {
+                            status = '重复数据';
+                            statusClass = 'status-duplicate';
+                        } else {
+                            status = '符合要求';
+                            statusClass = 'status-valid';
+                        }
+                        
+                        // 只有符合指定位数的数字才在B列显示
+                        const extracted = num.length === digitCount ? num : '';
+                        
+                        rows.push({
+                            original: num,
+                            extracted: extracted,
+                            status: status,
+                            statusClass: statusClass
+                        });
+                        
+                        // 如果是符合要求的数字，添加到新提取数组
+                        if (num.length === digitCount && !allExtractedNumbers.has(num)) {
+                            newExtracted.push(num);
+                        }
+                    });
+                    
+                    // 将新提取的数据添加到总集合中
+                    newExtracted.forEach(num => allExtractedNumbers.add(num));
+                    
+                    // 记录历史
+                    const record = {
+                        timestamp: new Date().toLocaleString(),
+                        digitCount: digitCount,
+                        processedCount: validNumbers.length,
+                        newExtractedCount: newExtracted.length,
+                        totalExtractedCount: allExtractedNumbers.size
+                    };
+                    
+                    historyRecords.unshift(record); // 添加到数组开头
+                    
+                    // 更新历史记录显示
+                    updateHistoryDisplay();
+                    
+                    // 清空输入框
+                    document.getElementById('inputData').value = '';
+                    
+                    // 跳转到结果页面显示当前状态
+                    showResultPage();
+                } catch (error) {
+                    console.error('处理数据时出错:', error);
+                    alert('处理数据时发生错误，请检查输入数据格式。');
+                }
+            }
+            
+            // 更新历史记录显示
+            function updateHistoryDisplay() {
+                const historyList = document.getElementById('historyList');
+                const placeholder = document.getElementById('historyPlaceholder');
+                
+                if (historyRecords.length > 0) {
+                    if (placeholder) {
+                        placeholder.remove();
+                    }
+                    
+                    // 清空历史记录列表
+                    historyList.innerHTML = '';
+                    
+                    // 添加历史记录项
+                    historyRecords.forEach((record, index) => {
+                        const li = document.createElement('li');
+                        li.className = 'history-item';
+                        li.innerHTML = `
+                            <span>第${index + 1}次处理 - ${record.timestamp}</span>
+                            <span>${record.newExtractedCount}个新数据 | 总计${record.totalExtractedCount}个</span>
+                        `;
+                        historyList.appendChild(li);
+                    });
+                } else {
+                    if (!placeholder) {
+                        const li = document.createElement('li');
+                        li.id = 'historyPlaceholder';
+                        li.className = 'history-item';
+                        li.textContent = '暂无历史记录';
+                        historyList.appendChild(li);
+                    }
+                }
+            }
+            
+            // 显示结果页面
+            function showResultPage() {
+                // 将Set转换为数组并排序
+                const extractedNumbersArray = Array.from(allExtractedNumbers).sort();
+                
+                // 渲染表格（显示所有历史数据的处理结果）
+                const tbody = document.getElementById('resultBody');
+                tbody.innerHTML = '';
+                
+                // 显示最终提取的数据
+                extractedNumbersArray.forEach(num => {
+                    const tr = document.createElement('tr');
+                    
+                    const td1 = document.createElement('td');
+                    td1.textContent = num;
+                    
+                    const td2 = document.createElement('td');
+                    td2.textContent = num;
+                    td2.className = 'status-valid';
+                    
+                    const td3 = document.createElement('td');
+                    td3.textContent = '最终结果';
+                    td3.className = 'status-valid';
+                    
+                    tr.appendChild(td1);
+                    tr.appendChild(td2);
+                    tr.appendChild(td3);
+                    
+                    tbody.appendChild(tr);
+                });
+                
+                // 显示统计信息
+                const statsElement = document.getElementById('stats');
+                const currentDigitCount = parseInt(document.getElementById('digitCount').value) || 19;
+                statsElement.innerHTML = `
+                    <strong>📈 最终统计信息：</strong>
+                    共找到 <strong>${extractedNumbersArray.length}</strong> 个唯一的${currentDigitCount}位数字，
+                    总共处理 <strong>${historyRecords.reduce((sum, record) => sum + record.processedCount, 0)}</strong> 个≥5位的数字，
+                    来自 <strong>${historyRecords.length}</strong> 次提交
+                `;
+                
+                // 跳转到结果页面
+                showPage('resultPage');
+            }
+            
+            // 下载XLSX文件
+            function downloadXlsx() {
+                try {
+                    if (allExtractedNumbers.size === 0) {
+                        alert('没有数据可下载，请先处理数据。');
+                        return;
+                    }
+                    
+                    // 创建工作簿
+                    const XLSX = window.XLSX;
+                    if (!XLSX) {
+                        alert('XLSX库未加载，请确保页面已完全加载。');
+                        return;
+                    }
+                    
+                    // 将Set转换为数组并排序
+                    const extractedNumbersArray = Array.from(allExtractedNumbers).sort();
+                    
+                    // 创建工作表 - 无表头
+                    const ws = XLSX.utils.json_to_sheet(
+                        extractedNumbersArray.map(num => ({'A列': num})), 
+                        {skipHeader: true}
+                    );
+                    
+                    // 设置列宽 - 根据最长数据的字符数设置
+                    const maxLength = Math.max(...extractedNumbersArray.map(num => num.length), 10);
+                    ws['!cols'] = [{wch: maxLength + 2}]; // 增加一些额外空间
+                    
+                    // 创建工作簿对象
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, '数据');
+                    
+                    // 获取文件名
+                    const fileNameInput = document.getElementById('fileName');
+                    const fileName = fileNameInput.value.trim() || '提取数据';
+                    
+                    // 下载文件
+                    XLSX.writeFile(wb, `${fileName}.xlsx`);
+                } catch (error) {
+                    console.error('下载文件时出错:', error);
+                    alert('下载文件时发生错误，请稍后重试。');
+                }
+            }
+            
+            // 清空所有数据
+            function clearAll() {
+                if (confirm('确定要清空所有数据和历史记录吗？此操作不可恢复。')) {
+                    allExtractedNumbers.clear();
+                    historyRecords = [];
+                    document.getElementById('inputData').value = '';
+                    updateHistoryDisplay();
+                    document.getElementById('resultBody').innerHTML = '';
+                    document.getElementById('stats').innerHTML = '';
+                    alert('已清空所有数据和历史记录！');
+                }
+            }
+            
+            // 页面加载时的初始化
+            window.onload = function() {
+                // 默认显示输入页面
+                showPage('inputPage');
+                
+                // 设置默认文件名为当前日期
+                const today = new Date();
+                const month = String(today.getMonth() + 1).padStart(2, '0');
+                const day = String(today.getDate()).padStart(2, '0');
+                document.getElementById('fileName').value = `${month}${day}-`;
+                
+                // 动态加载SheetJS库
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+                script.onload = function() {
+                    console.log('XLSX库已加载');
+                };
+                script.onerror = function() {
+                    console.error('XLSX库加载失败');
+                };
+                document.head.appendChild(script);
+                
+                // 初始化历史记录显示
+                updateHistoryDisplay();
+            };
+        </script>
+    </div>
+</body>
+</html>
+
+
+
